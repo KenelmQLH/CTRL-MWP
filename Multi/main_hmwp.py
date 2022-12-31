@@ -1,4 +1,6 @@
-from re import I
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]= "4"
+
 import copy
 import json
 import torch
