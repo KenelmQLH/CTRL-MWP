@@ -102,7 +102,7 @@ def test():
     train_data = load_data(data_root_path + 'HMWP_fold' + str(fold) + '_train.jsonl')
     dev_data = load_data(data_root_path + 'HMWP_fold' + str(fold) + '_test.jsonl')
 
-    test_data = load_data(f'data/hmwp/{DATA_VERSION}/hmwp_test.jsonl')
+    test_data = load_data(f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl')
 
     if os.path.exists(f"pretrain_model/{pretrain_model_name}"):
         tokenizer = AutoTokenizer.from_pretrained(f"pretrain_model/{pretrain_model_name}")

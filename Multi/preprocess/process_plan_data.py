@@ -591,9 +591,11 @@ def rectity_ques(items):
     return rec_items
 
 
-# test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.json"
-test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_test.json"
-save_data_path = path_append(abs_current_dir(__file__), f'../data/hmwp/{DATA_VERSION}/hmwp_test.jsonl', to_str=True) 
+# test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_test.json"
+
+test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.json"
+
+save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl', to_str=True) 
 
 check2mkdir(save_data_path)
 
