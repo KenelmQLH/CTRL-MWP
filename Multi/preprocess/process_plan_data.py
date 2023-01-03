@@ -531,7 +531,7 @@ CUR_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def add_args(parser):
-    parser.add_argument('-data_name', type=str, default="hmwp")
+    parser.add_argument('-data_name', type=str, default="make")
     parser.add_argument('-data_version', type=int, default=97)
 
 
@@ -581,7 +581,10 @@ def rectity_ques(items):
         else:
             equation = " ".join(item["adjust_equations"])
 
-        answer = [ eval(num) if isinstance(num, str) else num for num in item["answer"]]
+        if "answer" not in item:
+            answer = []
+        else:
+            answer = [ eval(num) if isinstance(num, str) else num for num in item["answer"]]
         rec_items.append({
             "id": idx,
             "original_text": " ".join(ques_tokens),
@@ -591,21 +594,51 @@ def rectity_ques(items):
     return rec_items
 
 
-# test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_test.json"
+def work_test_data():
+    # test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_test.json"
 
-test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.json"
+    # test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.json"
 
-save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl', to_str=True) 
+    # save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl', to_str=True) 
 
-check2mkdir(save_data_path)
+    # check2mkdir(save_data_path)
 
-test_data = json.load(open(test_data_path, 'r', encoding="utf-8"))
-test_data = rectity_ques(test_data)
+    # test_data = json.load(open(test_data_path, 'r', encoding="utf-8"))
+    # test_data = rectity_ques(test_data)
 
-test_data = transfer_num(test_data)
+    # test_data = transfer_num(test_data)
 
-f = open(save_data_path, 'w', encoding="utf-8")
-for d in test_data:
-    json.dump(d, f, ensure_ascii=False)
-    f.write("\n")
-f.close()
+    # f = open(save_data_path, 'w', encoding="utf-8")
+    # for d in test_data:
+    #     json.dump(d, f, ensure_ascii=False)
+    #     f.write("\n")
+    # f.close()
+    pass
+
+
+def work_train_data(mode):
+    test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_{mode}.json"
+
+    # test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_{mode}.json"
+    
+    if mode == "valid":
+        mode = "dev"
+    save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/dev_test/{DATA_VERSION}/{DATA_NAME}_{mode}.jsonl', to_str=True) 
+
+    check2mkdir(save_data_path)
+
+    test_data = json.load(open(test_data_path, 'r', encoding="utf-8"))
+    test_data = rectity_ques(test_data)
+
+    test_data = transfer_num(test_data)
+
+    f = open(save_data_path, 'w', encoding="utf-8")
+    for d in test_data:
+        json.dump(d, f, ensure_ascii=False)
+        f.write("\n")
+    f.close()
+    print(f"Finishing ... {mode}")
+
+work_train_data("train")
+work_train_data("valid")
+work_train_data("test")

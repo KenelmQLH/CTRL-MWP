@@ -79,7 +79,12 @@ def find_numbers_in_text(text, append_number_token=True):
 
                 # Normalize the form: use the decimal point representation with 15-th position under the decimal point.
                 is_fraction = '/' in surface_form
+                if surface_form == '４':
+                    surface_form="4"
+                elif  surface_form == '２':
+                    surface_form="2"
                 value = eval(surface_form)
+                
                 if type(value) is float:
                     surface_form = FOLLOWING_ZERO_PATTERN.sub('\\1', '%.15f' % value)
 

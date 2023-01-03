@@ -95,7 +95,7 @@ def generate_graph(max_num_len, nums):
 
 def test():
     set_seed()
-    fold = 0
+    fold = 4
 
     # 加载数据集
     data_root_path = 'data/hmwp/mtokens/'
