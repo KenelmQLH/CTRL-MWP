@@ -23,7 +23,7 @@ from preprocess.metric import compute_tree_result, compute_tuple_result
 pretrain_model_name = 'bert-base-chinese'
 max_text_len = 1024
 max_equ_len = 100
-batch_size = 32
+batch_size = 16
 epochs = 60
 lr = 5e-5
 embedding_size = 128
@@ -66,11 +66,16 @@ def train():
         dev_data = load_data(data_root_path + 'HMWP_fold' + str(fold) + '_test.jsonl')
 
         if os.path.exists(f"pretrain_model/{pretrain_model_name}"):
-            config = AutoConfig.from_pretrained(f"pretrain_model/{pretrain_model_name}")
             tokenizer = AutoTokenizer.from_pretrained(f"pretrain_model/{pretrain_model_name}")
+            pretrain_model = AutoModel.from_pretrained(f"pretrain_model/{pretrain_model_name}")
         else:
             tokenizer = AutoTokenizer.from_pretrained(pretrain_model_name)
             tokenizer.save_pretrained(f"pretrain_model/{pretrain_model_name}")
+            
+            pretrain_model = AutoModel.from_pretrained(pretrain_model_name)
+            pretrain_model.save_pretrained(f"pretrain_model/{pretrain_model_name}")
+
+        config = pretrain_model.config
 
         tokens_count = Counter()
         max_nums_len = 0
@@ -169,18 +174,12 @@ def train():
                 batches.append((text_ids, text_pads, num_ids, num_pads, graphs, equ_ids, equ_pads, tuple_ids))
             return batches
 
-        if os.path.exists(f"pretrain_model/{pretrain_model_name}"):
-            pretrain_model = AutoModel.from_pretrained(f"pretrain_model/{pretrain_model_name}")
-        else:
-            pretrain_model = AutoModel.from_pretrained(pretrain_model_name)
-            pretrain_model.save_pretrained(f"pretrain_model/{pretrain_model_name}")
-        config = pretrain_model.config
         pretrain_model.resize_token_embeddings(len(tokenizer))
-
         encoder = Encoder(pretrain_model)
         treedecoder = TreeDecoder(config, len(op_tokens1), len(constant_tokens1), embedding_size)
         solver = Solver(encoder, treedecoder)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # device = torch.device("cpu")
         solver.to(device)
 
         

@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from transformers import AutoModel
 
 
 def gather_vectors(encoded, num_ids):
@@ -29,3 +30,6 @@ class Encoder(nn.Module):
 
     def save_pretrained(self, save_directory):
         self.model.save_pretrained(save_directory)
+    
+    def load_pretrained(self, save_directory):
+        self.model = AutoModel.from_pretrained(save_directory)

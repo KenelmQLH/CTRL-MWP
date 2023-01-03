@@ -29,6 +29,10 @@ class Solver(nn.Module):
         # torch.save(self.grapher.state_dict(), save_directory + "/grapher.pt")
         torch.save(self.decoder1.state_dict(), save_directory + "/decoder1.pt")
         # torch.save(self.decoder2.state_dict(), save_directory + "/decoder2.pt")
+    
+    def load_pretrained(self, save_directory):
+        self.encoder.load_pretrained(save_directory)
+        self.decoder1.load_state_dict(torch.load(save_directory + "/decoder1.pt"))
 
 def masked_cross_entropy(logits, target, mask):
     target[~mask] = 0

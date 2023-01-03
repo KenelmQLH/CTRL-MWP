@@ -4,6 +4,7 @@ import json
 import sympy
 import numpy as np
 from english import find_numbers_in_text
+from EasyData.NLPHandler import is_math_num
 
 def load_raw_data(filename):  # load the json data to list(dict()) for MATH 23K
     print("Reading lines...")
@@ -233,18 +234,25 @@ def transfer_num(data):  # transfer num into "NUM"
             continue
         nums = []
         input_seq = []
-        seg = d["original_text"].strip().split()
-        equations = d["equation"]
 
-        for s in seg:
-            pos = re.search(pattern, s) # 搜索每个词的数字位置
-            if pos and pos.start() == 0:
-                nums.append(s[pos.start():pos.end()])
-                input_seq.append('_'+s[pos.start():pos.end()]+'[N]')
-                if pos.end() < len(s):
-                    input_seq.append(s[pos.end():])
-            elif s != "":
-                input_seq.append(s)
+        seg = d["original_text"].strip().split()
+        input_seq, nums = find_numbers_in_text(d['original_text'].strip())
+        # for s in seg:
+        #     pos = re.search(pattern, s) # 搜索每个词的数字位置
+        #     if pos and pos.start() == 0:
+        #         nums.append(s[pos.start():pos.end()])
+        #         # input_seq.append('_'+s[pos.start():pos.end()]+'[N]')
+
+        #         if pos.end() < len(s):
+        #             input_seq.append(s[pos.end():])
+        #     elif s != "":
+        #         input_seq.append(s)
+
+
+        # equations = d["equation"]
+        equations = [str(float(eval(t.strip()))) if is_math_num(t) else t for t in d["equation"].split()]
+        equations = " ".join(equations)
+
 
         nums_fraction = []
         for num in nums:
@@ -515,10 +523,87 @@ def load_data(filename):
 # f.close()
 
 
-data = json.load(open('../data/hmwp/hmwp.json', 'r'))
-data = transfer_num(data)
-f = open('../data/hmwp/hmwp.jsonl', 'w')
-for d in data:
+import argparse
+from EasyData.FileHandler import check2mkdir, path_append, abs_current_dir
+import os
+import sys
+CUR_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def add_args(parser):
+    parser.add_argument('-data_name', type=str, default="hmwp")
+    parser.add_argument('-data_version', type=int, default=97)
+
+
+parser = argparse.ArgumentParser(description='[Get args for wrok data]')
+add_args(parser)
+work_opt = parser.parse_args()
+
+
+DATA_NAME = work_opt.data_name
+# 读取 题目数据
+DATA_DICT = {
+    "make": ["chinese", "muti_equation"],
+    "hmwp": ["chinese", "muti_equation"],
+    "dophin": ["english", "muti_equation"],
+    "equation": ["chinese", "muti_equation"],
+
+    "arithmetic": ["english", "linear_expression"],
+    "mawps": ["english", "linear_expression"],
+    "math23k_en": ["english", "linear_expression"],
+    "linear": ["english", "linear_expression"],
+    "nl4opt": ["english", "optimization"],
+}
+DATA_TYPE = DATA_DICT[DATA_NAME][1]
+DATA_VERSION = work_opt.data_version
+
+
+def revocer_num(_token, _memery_num_to_idx):
+    t = _memery_num_to_idx.get(_token, _token)
+    return str(t)
+
+def rectity_ques(items):
+    rec_items = []
+    for idx, item in enumerate(items):
+        _memery_num_to_idx = item["memery_num_to_idx"]
+        _memery_idx_to_num = {f"num_{v}": k for k,v in _memery_num_to_idx.items()}
+        if "disturb_num_to_idx" in item:
+            # 弃用 disturb_num 模板化
+            memery_disturb_idx_to_num = {f"disturb_{i}": d for d, i in item["disturb_num_to_idx"].items()}
+            for i, sent in enumerate(item["question_sents"]):
+                item["question_sents"][i] = [memery_disturb_idx_to_num.get(t, t) for t in sent]
+            ques_tokens = [revocer_num(t, _memery_idx_to_num) for s in item["question_sents"] for t in s]
+        else:
+            ques_tokens = [revocer_num(t, _memery_idx_to_num) for s in item["question_sents"] for t in s]
+
+        if len(item["adjust_equations"]) > 1:
+            equation = " ; ".join(item["adjust_equations"])
+        else:
+            equation = " ".join(item["adjust_equations"])
+
+        answer = [ eval(num) if isinstance(num, str) else num for num in item["answer"]]
+        rec_items.append({
+            "id": idx,
+            "original_text": " ".join(ques_tokens),
+            "equation": equation,
+            "ans": answer,
+        })
+    return rec_items
+
+
+# test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.json"
+test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_test.json"
+save_data_path = path_append(abs_current_dir(__file__), f'../data/hmwp/{DATA_VERSION}/hmwp_test.jsonl', to_str=True) 
+
+check2mkdir(save_data_path)
+
+test_data = json.load(open(test_data_path, 'r', encoding="utf-8"))
+test_data = rectity_ques(test_data)
+
+test_data = transfer_num(test_data)
+
+f = open(save_data_path, 'w', encoding="utf-8")
+for d in test_data:
     json.dump(d, f, ensure_ascii=False)
     f.write("\n")
 f.close()
