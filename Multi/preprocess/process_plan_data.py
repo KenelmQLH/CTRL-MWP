@@ -375,6 +375,7 @@ def transfer_num(data):  # transfer num into "NUM"
         postfix = [from_infix_to_postfix(x) for x in out_seq]
         if len(postfix) > 2:
             print(d)
+            print("========== ( len(postfix) > 2 )")
             continue
         prefix = sum(prefix, [])
         prefix = [';'] * (prefix.count('=')-1) + prefix
@@ -401,8 +402,8 @@ def transfer_num(data):  # transfer num into "NUM"
             for i,value in enumerate(ans):
                 if abs(ans[i] - real_ans[i]) > 1e-3:
                     result = False
-        if not result:
-            print(d)
+        # if not result:
+        #     print(d)
 
         temp['nums'] = num_values
         temp['answer'] = ans
