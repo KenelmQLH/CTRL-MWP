@@ -9,8 +9,8 @@ import numpy as np
 from tqdm import tqdm
 from collections import Counter
 from transformers import BertTokenizer, AutoTokenizer, AutoConfig, AutoModel, AdamW
-
 from transformers import get_linear_schedule_with_warmup
+from EasyData.FileHandler import write_json
 
 from configuration.config import *
 from models.text import Encoder
@@ -40,12 +40,11 @@ CUR_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 def add_args(parser):
     parser.add_argument('-data_name', type=str, default="hmwp")
     parser.add_argument('-data_version', type=int, default=97)
-
+    parser.add_argument('-test_file', type=str, default=None)
 
 parser = argparse.ArgumentParser(description='[Get args for wrok data]')
 add_args(parser)
 work_opt = parser.parse_args()
-
 
 DATA_NAME = work_opt.data_name
 # 读取 题目数据
@@ -63,6 +62,10 @@ DATA_DICT = {
 }
 DATA_TYPE = DATA_DICT[DATA_NAME][1]
 DATA_VERSION = work_opt.data_version
+DATA_TYPE = DATA_DICT[DATA_NAME][1]
+
+test_file = work_opt.test_file
+
 
 
 def load_data(filename):
@@ -102,7 +105,11 @@ def test():
     train_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_train.jsonl')
     dev_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_test.jsonl')
 
-    test_data = load_data(f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl')
+    if test_file is not None:
+        test_data = load_data(test_file)
+    else:
+        test_file = f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl'
+        test_data = load_data(test_file)
 
     if os.path.exists(f"pretrain_model/{pretrain_model_name}"):
         tokenizer = AutoTokenizer.from_pretrained(f"pretrain_model/{pretrain_model_name}")
@@ -290,6 +297,8 @@ def test():
 
     equ_acc = float(equation_ac) / eval_total
     val_acc = float(value_ac) / eval_total
+
+    write_json(all_results, test_file.replace(".jsonl", "_pred.json"))
 
     print(f"equ_acc = {equ_acc}")
     print(f"val_acc = {val_acc}")

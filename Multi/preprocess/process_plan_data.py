@@ -531,14 +531,18 @@ CUR_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def add_args(parser):
-    parser.add_argument('-data_name', type=str, default="make")
-    parser.add_argument('-data_version', type=int, default=97)
+    parser.add_argument('-data_dir', type=str, default=None)
+    parser.add_argument('-work_mode',
+                        type=str,
+                        choices=['gold', 'pred'],
+                        default="pred")
+    parser.add_argument('--data_name', type=str, default='make')
+    parser.add_argument('--data_version', type=int, default=97)
 
 
 parser = argparse.ArgumentParser(description='[Get args for wrok data]')
 add_args(parser)
 work_opt = parser.parse_args()
-
 
 DATA_NAME = work_opt.data_name
 # 读取 题目数据
@@ -557,6 +561,8 @@ DATA_DICT = {
 DATA_TYPE = DATA_DICT[DATA_NAME][1]
 DATA_VERSION = work_opt.data_version
 
+data_dir = work_opt.data_dir
+work_mode = work_opt.work_mode
 
 def revocer_num(_token, _memery_num_to_idx):
     t = _memery_num_to_idx.get(_token, _token)
@@ -595,36 +601,12 @@ def rectity_ques(items):
 
 
 def work_test_data():
-    # test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_test.json"
-
-    # test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.json"
-
-    # save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl', to_str=True) 
-
-    # check2mkdir(save_data_path)
-
-    # test_data = json.load(open(test_data_path, 'r', encoding="utf-8"))
-    # test_data = rectity_ques(test_data)
-
-    # test_data = transfer_num(test_data)
-
-    # f = open(save_data_path, 'w', encoding="utf-8")
-    # for d in test_data:
-    #     json.dump(d, f, ensure_ascii=False)
-    #     f.write("\n")
-    # f.close()
-    pass
-
-
-def work_train_data(mode):
-    test_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_{mode}.json"
-
-    # test_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_{mode}.json"
+    test_data_path = f"{data_dir}/{DATA_NAME}_test.json"
+    print(f"Load data from {test_data_path} ... ")
     
-    if mode == "valid":
-        mode = "dev"
-    save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/dev_test/{DATA_VERSION}/{DATA_NAME}_{mode}.jsonl', to_str=True) 
-
+    # save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl', to_str=True) 
+    
+    save_data_path = f"{data_dir}/{DATA_NAME}_test.jsonl"
     check2mkdir(save_data_path)
 
     test_data = json.load(open(test_data_path, 'r', encoding="utf-8"))
@@ -637,8 +619,36 @@ def work_train_data(mode):
         json.dump(d, f, ensure_ascii=False)
         f.write("\n")
     f.close()
+    print(f"Save data to {save_data_path} ... ")
+    pass
+
+
+def work_gold_data(mode):
+    # work_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_{mode}.json"
+    work_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_{mode}.json"
+    print(f"Load data from {work_data_path} ... ")
+
+    if mode == "valid":
+        mode = "dev"
+    save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/dev_test/{DATA_VERSION}/{DATA_NAME}_{mode}.jsonl', to_str=True) 
+    check2mkdir(save_data_path)
+
+    test_data = json.load(open(work_data_path, 'r', encoding="utf-8"))
+    test_data = rectity_ques(test_data)
+
+    test_data = transfer_num(test_data)
+
+    f = open(save_data_path, 'w', encoding="utf-8")
+    for d in test_data:
+        json.dump(d, f, ensure_ascii=False)
+        f.write("\n")
+    f.close()
+    print(f"Save data to {save_data_path} ... ")
     print(f"Finishing ... {mode}")
 
-work_train_data("train")
-work_train_data("valid")
-work_train_data("test")
+if work_mode == "pred":
+    work_test_data()
+elif work_mode == "gold":
+    work_gold_data("train")
+    work_gold_data("valid")
+    work_gold_data("test")
