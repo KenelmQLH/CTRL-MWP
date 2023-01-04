@@ -108,8 +108,7 @@ def test():
     if test_file is not None:
         test_data = load_data(test_file)
     else:
-        test_file = f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl'
-        test_data = load_data(test_file)
+        test_data = load_data(f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl')
 
     if os.path.exists(f"pretrain_model/{pretrain_model_name}"):
         tokenizer = AutoTokenizer.from_pretrained(f"pretrain_model/{pretrain_model_name}")
@@ -298,7 +297,10 @@ def test():
     equ_acc = float(equation_ac) / eval_total
     val_acc = float(value_ac) / eval_total
 
-    write_json(all_results, test_file.replace(".jsonl", "_pred.json"))
+    if test_file is not None:
+        write_json(all_results, test_file.replace(".jsonl", "_pred.json"))
+    else:
+        write_json(all_results, f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test_pred.json')
 
     print(f"equ_acc = {equ_acc}")
     print(f"val_acc = {val_acc}")

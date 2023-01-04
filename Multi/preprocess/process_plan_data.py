@@ -568,7 +568,7 @@ def revocer_num(_token, _memery_num_to_idx):
     t = _memery_num_to_idx.get(_token, _token)
     return str(t)
 
-def rectity_ques(items):
+def rectity_gold_ques(items):
     rec_items = []
     for idx, item in enumerate(items):
         _memery_num_to_idx = item["memery_num_to_idx"]
@@ -599,18 +599,43 @@ def rectity_ques(items):
         })
     return rec_items
 
+def rectity_pred_ques(items):
+    rec_items = []
+    for idx, item in enumerate(items):
+        _memery_num_to_idx = item["raw_memery_num_to_idx"]
+        _memery_idx_to_num = {f"num_{v}": k for k,v in _memery_num_to_idx.items()}
+
+        ques_tokens = [revocer_num(t, _memery_idx_to_num) for t in item["pred_text"].split() ]
+
+        if len(item["raw_equations"]) > 1:
+            equation = " ; ".join(item["raw_equations"])
+        else:
+            equation = " ".join(item["raw_equations"])
+
+        if "answer" not in item:
+            answer = []
+        else:
+            answer = [ eval(num) if isinstance(num, str) else num for num in item["answer"]]
+        rec_items.append({
+            "id": idx,
+            "original_text": " ".join(ques_tokens),
+            "equation": equation,
+            "ans": answer,
+        })
+    return rec_items
+
 
 def work_test_data():
-    test_data_path = f"{data_dir}/{DATA_NAME}_test.json"
+    test_data_path = f"{data_dir}/infer_test.json"
     print(f"Load data from {test_data_path} ... ")
     
     # save_data_path = path_append(abs_current_dir(__file__), f'../data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl', to_str=True) 
     
-    save_data_path = f"{data_dir}/{DATA_NAME}_test.jsonl"
+    save_data_path = f"{data_dir}/infer_test.jsonl"
     check2mkdir(save_data_path)
 
     test_data = json.load(open(test_data_path, 'r', encoding="utf-8"))
-    test_data = rectity_ques(test_data)
+    test_data = rectity_pred_ques(test_data)
 
     test_data = transfer_num(test_data)
 
@@ -634,7 +659,7 @@ def work_gold_data(mode):
     check2mkdir(save_data_path)
 
     test_data = json.load(open(work_data_path, 'r', encoding="utf-8"))
-    test_data = rectity_ques(test_data)
+    test_data = rectity_gold_ques(test_data)
 
     test_data = transfer_num(test_data)
 
