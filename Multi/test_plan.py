@@ -98,9 +98,9 @@ def test():
     fold = 4
 
     # 加载数据集
-    data_root_path = 'data/hmwp/mtokens/'
-    train_data = load_data(data_root_path + 'HMWP_fold' + str(fold) + '_train.jsonl')
-    dev_data = load_data(data_root_path + 'HMWP_fold' + str(fold) + '_test.jsonl')
+    data_root_path = f'data/{DATA_NAME}/mtokens/{DATA_VERSION}/'
+    train_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_train.jsonl')
+    dev_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_test.jsonl')
 
     test_data = load_data(f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl')
 
@@ -230,7 +230,7 @@ def test():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # device = torch.device("cpu")
     
-    solver.load_pretrained('result_hmwp/fold_' + str(fold) +'/models')
+    solver.load_pretrained(f'result_{DATA_NAME}/fold_' + str(fold) +'/models')
 
     solver.to(device)
 
