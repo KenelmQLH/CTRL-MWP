@@ -39,8 +39,10 @@ CUR_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def add_args(parser):
     parser.add_argument('-data_name', type=str, default="hmwp")
+    parser.add_argument('-train_data_version', type=int, default=97)
     parser.add_argument('-data_version', type=int, default=97)
     parser.add_argument('-test_file', type=str, default=None)
+    
 
 parser = argparse.ArgumentParser(description='[Get args for wrok data]')
 add_args(parser)
@@ -64,6 +66,8 @@ DATA_TYPE = DATA_DICT[DATA_NAME][1]
 DATA_VERSION = work_opt.data_version
 DATA_TYPE = DATA_DICT[DATA_NAME][1]
 
+
+train_data_version = work_opt.train_data_version
 test_file = work_opt.test_file
 
 
@@ -101,7 +105,7 @@ def test():
     fold = 4
 
     # 加载数据集
-    data_root_path = f'data/{DATA_NAME}/mtokens/{DATA_VERSION}/'
+    data_root_path = f'data/{DATA_NAME}/mtokens/{train_data_version}/'
     train_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_train.jsonl')
     dev_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_test.jsonl')
 
