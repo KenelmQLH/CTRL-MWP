@@ -125,3 +125,4 @@ models/
 result_hmwp/
 result_make/
 pretrain_model/
+*.zip

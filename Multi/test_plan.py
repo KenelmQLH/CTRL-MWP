@@ -1,6 +1,4 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]= "4"
-
 import copy
 import json
 import torch
@@ -42,6 +40,7 @@ def add_args(parser):
     parser.add_argument('-train_data_version', type=int, default=97)
     parser.add_argument('-data_version', type=int, default=97)
     parser.add_argument('-test_file', type=str, default=None)
+    parser.add_argument('-gpu', type=int, default=0)
     
 
 parser = argparse.ArgumentParser(description='[Get args for wrok data]')
@@ -69,8 +68,7 @@ DATA_TYPE = DATA_DICT[DATA_NAME][1]
 
 train_data_version = work_opt.train_data_version
 test_file = work_opt.test_file
-
-
+gpu = work_opt.gpu
 
 def load_data(filename):
     data = []
@@ -237,7 +235,7 @@ def test():
     encoder = Encoder(pretrain_model)
     treedecoder = TreeDecoder(config, len(op_tokens1), len(constant_tokens1), embedding_size)
     solver = Solver(encoder, treedecoder)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(f"cuda:{gpu}" if torch.cuda.is_available() else "cpu")
     # device = torch.device("cpu")
     
     solver.load_pretrained(f'result_{DATA_NAME}/fold_' + str(fold) +'/models')

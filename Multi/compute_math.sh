@@ -2,7 +2,8 @@
 
 pred_data_dir=$1
 data_name=$2 # make
-data_version=$3 # 97
+data_version=$3 # 97 # raw_model_test
+gpu=$4
 
 cd preprocess
 
@@ -17,4 +18,4 @@ cd ..
 
 
 echo "[2] compute equation_acc for gold_ques and pred_ques ... "
-python test_plan.py -test_file ${pred_data_dir}/infer_test.jsonl -data_name $2 -data_version $3
+python test_plan.py -test_file ${pred_data_dir}/infer_test.jsonl -data_name $2 -data_version $3 -gpu ${gpu}
