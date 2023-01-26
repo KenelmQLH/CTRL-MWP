@@ -17,4 +17,4 @@ cd ..
 
 
 echo "[2] compute equation_acc for gold_ques and pred_ques ... "
-python test_plan.py -test_file ${pred_data_dir}/infer_test.jsonl -data_name $2 -data_version $3
+python test_plan.py -test_file ${pred_data_dir}/infer_test.jsonl -data_name $2 -data_version ${data_version}
