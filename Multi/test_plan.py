@@ -1,6 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]= "0"
-
+os.environ["CUDA_VISIBLE_DEVICES"]= "2"
 import copy
 import json
 import torch
@@ -39,8 +38,11 @@ CUR_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def add_args(parser):
     parser.add_argument('-data_name', type=str, default="hmwp")
+    parser.add_argument('-train_data_version', type=int, default=97)
     parser.add_argument('-data_version', type=int, default=97)
     parser.add_argument('-test_file', type=str, default=None)
+    parser.add_argument('-gpu', type=int, default=0)
+    
 
 parser = argparse.ArgumentParser(description='[Get args for wrok data]')
 add_args(parser)
@@ -64,9 +66,10 @@ DATA_TYPE = DATA_DICT[DATA_NAME][1]
 DATA_VERSION = work_opt.data_version
 DATA_TYPE = DATA_DICT[DATA_NAME][1]
 
+
+train_data_version = work_opt.train_data_version
 test_file = work_opt.test_file
-
-
+gpu = work_opt.gpu
 
 def load_data(filename):
     data = []
@@ -101,7 +104,7 @@ def test():
     fold = 4
 
     # 加载数据集
-    data_root_path = f'data/{DATA_NAME}/mtokens/{DATA_VERSION}/'
+    data_root_path = f'data/{DATA_NAME}/mtokens/{train_data_version}/'
     train_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_train.jsonl')
     dev_data = load_data(data_root_path + f'{DATA_NAME}_fold' + str(fold) + '_test.jsonl')
 
@@ -233,7 +236,9 @@ def test():
     encoder = Encoder(pretrain_model)
     treedecoder = TreeDecoder(config, len(op_tokens1), len(constant_tokens1), embedding_size)
     solver = Solver(encoder, treedecoder)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(f"cuda:{gpu}" if torch.cuda.is_available() else "cpu")
+    print("[DEBUG] device = ", device)
+
     # device = torch.device("cpu")
     
     solver.load_pretrained(f'result_{DATA_NAME}/fold_' + str(fold) +'/models')
@@ -253,31 +258,39 @@ def test():
     wrong_results = []
     bar = tqdm(enumerate(test_batches), total=len(test_batches))
     for _,(text1, num, value, d) in bar:
-        text1_ids = torch.tensor([text1], dtype=torch.long)
-        num_ids = torch.tensor([num], dtype=torch.long)
-        graphs = generate_graph(len(num), value)
-        graphs = torch.tensor([graphs], dtype=torch.float)
-        text_pads = text1_ids != tokenizer.pad_token_id
-        text_pads = text_pads.float()
-        num_pads = num_ids != -1
-        num_pads = num_pads.float()
-        batch = [text1_ids, text_pads, num_ids, num_pads, graphs]
-        batch = [_.to(device) for _ in batch]
-        text1_ids, text_pads, num_ids, num_pads, graphs = batch
-        tree_res1 = evaluate_double(solver, text1_ids, text_pads, num_ids, num_pads, graphs,
-                                        op_tokens1, constant_tokens1, op_dict2, max_equ_len, beam_size=3)
-        tree_out1, tree_score1 = tree_res1.out, tree_res1.score
-        tree_out1 = [ids_dict1[x] for x in tree_out1]
-        tree_val_ac1, tree_equ_ac1 = False, False
-        tree_val_ac1, tree_equ_ac1 = compute_tree_result(tree_out1, d['prefix'], d['answer'], d['nums'])
-        scores = [tree_score1]
-        score_index = np.array(scores).argmax()
-        if score_index == 0:
-            val_ac = tree_val_ac1
-            equ_ac = tree_equ_ac1
-        value_ac += val_ac
-        equation_ac += equ_ac
-        eval_total += 1
+        try:
+            text1_ids = torch.tensor([text1], dtype=torch.long)
+            num_ids = torch.tensor([num], dtype=torch.long)
+            graphs = generate_graph(len(num), value)
+            graphs = torch.tensor([graphs], dtype=torch.float)
+            text_pads = text1_ids != tokenizer.pad_token_id
+            text_pads = text_pads.float()
+            num_pads = num_ids != -1
+            num_pads = num_pads.float()
+            batch = [text1_ids, text_pads, num_ids, num_pads, graphs]
+            batch = [_.to(device) for _ in batch]
+            text1_ids, text_pads, num_ids, num_pads, graphs = batch
+            tree_res1 = evaluate_double(solver, text1_ids, text_pads, num_ids, num_pads, graphs,
+                                            op_tokens1, constant_tokens1, op_dict2, max_equ_len, beam_size=3)
+            tree_out1, tree_score1 = tree_res1.out, tree_res1.score
+            tree_out1 = [ids_dict1.get(x) for x in tree_out1]
+            tree_val_ac1, tree_equ_ac1 = False, False
+            tree_val_ac1, tree_equ_ac1 = compute_tree_result(tree_out1, d['prefix'], d['answer'], d['nums'])
+            scores = [tree_score1]
+            score_index = np.array(scores).argmax()
+            if score_index == 0:
+                val_ac = tree_val_ac1
+                equ_ac = tree_equ_ac1
+            value_ac += val_ac
+            equation_ac += equ_ac
+            eval_total += 1
+        except Exception as e:
+            print(e)
+            eval_total += 1
+            val_ac=False
+            tree_out1 = []
+            tree_score1 = []
+            tree_val_ac1 = []
         temp = {}
         temp['id'] = d['id']
         temp['text'] = d['text']
