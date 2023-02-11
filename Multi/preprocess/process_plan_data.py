@@ -225,6 +225,7 @@ def compute_prefix_expression(pre_fix):
 
 
 def transfer_num(data):  # transfer num into "NUM"
+    error_num = 0
     print("Transfer numbers...")
     pattern = re.compile("\d*\(\d+/\d+\)\d*|\d+\.\d+%?|\d+%?")
     pairs = []
@@ -382,16 +383,22 @@ def transfer_num(data):  # transfer num into "NUM"
         temp['prefix'] = prefix
         temp['postfix'] = postfix
         ans_infix = from_prefix_to_infix(out_expression_list(prefix, num_values))
-        ans = compute_ans(ans_infix)
-        if type(ans) == type(dict()):
-            ans = list(ans.values())
-        else:
-            new_ans = []
-            for a in ans:
-                for b in a:
-                    new_ans.append(b)
-            ans = new_ans
-        ans = [float(x) for x in ans]
+        try:
+            ans = compute_ans(ans_infix)
+            if type(ans) == type(dict()):
+                ans = list(ans.values())
+            else:
+                new_ans = []
+                for a in ans:
+                    for b in a:
+                        new_ans.append(b)
+                ans = new_ans
+
+            ans = [float(x) for x in ans]
+        except:
+            error_num += 1
+            print("[warning: wrong equation to compute ans]")
+            ans = [-1.0]
         ans.sort()
         real_ans = d['ans']
         real_ans.sort()
@@ -409,6 +416,7 @@ def transfer_num(data):  # transfer num into "NUM"
         temp['answer'] = ans
         pairs.append(temp)
 
+    print("[warning] : error num = ", error_num)
     return pairs
 
 def transfer_english_num(data):
@@ -536,8 +544,8 @@ def add_args(parser):
     parser.add_argument('-work_mode',
                         type=str,
                         choices=['gold', 'pred'],
-                        default="pred")
-    parser.add_argument('--data_name', type=str, default='make')
+                        default="gold")
+    parser.add_argument('--data_name', type=str, default='hmwp')
     parser.add_argument('--data_version', type=int, default=97)
 
 
@@ -649,9 +657,17 @@ def work_test_data():
     pass
 
 
+import platform
+
+if platform.system().lower() == "windows":
+    base_data_dir = "E:\Workustc\Math-Plan"
+else: # "linux"
+    base_data_dir = "/data/qlh/Math-Plan"
+
+
 def work_gold_data(mode):
-    # work_data_path = f"E:\\Workustc\\Math-Plan\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_{mode}.json"
-    work_data_path = f"/data/qlh/Math-Plan/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_{mode}.json"
+    # work_data_path = f"{base_data_dir}\\data\\{DATA_TYPE}\\{DATA_NAME}\\{DATA_VERSION}\\{DATA_NAME}_{mode}.json"
+    work_data_path = f"{base_data_dir}/data/{DATA_TYPE}/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_{mode}.json"
     print(f"Load data from {work_data_path} ... ")
 
     if mode == "valid":

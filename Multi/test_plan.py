@@ -111,7 +111,7 @@ def test():
     if test_file is not None:
         test_data = load_data(test_file)
     else:
-        test_data = load_data(f'data/{DATA_NAME}/{DATA_VERSION}/{DATA_NAME}_test.jsonl')
+        test_data = load_data(f'data/{DATA_NAME}/dev_test/{DATA_VERSION}/{DATA_NAME}_test.jsonl')
 
     if os.path.exists(f"pretrain_model/{pretrain_model_name}"):
         tokenizer = AutoTokenizer.from_pretrained(f"pretrain_model/{pretrain_model_name}")

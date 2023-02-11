@@ -7,7 +7,7 @@ CUR_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def add_args(parser):
-    parser.add_argument('-data_name', type=str, default="make")
+    parser.add_argument('-data_name', type=str, default="hmwp")
     parser.add_argument('-data_version', type=int, default=97)
 
 
