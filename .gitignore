@@ -122,7 +122,7 @@ planning_data/
 pretrained_models/
 
 models/
-result_hmwp/
-result_make/
+result_hmwp*/
+result_make*/
 pretrain_model/
 *.zip
